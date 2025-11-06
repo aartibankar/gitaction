@@ -1,0 +1,51 @@
+name: System Health Check (every 6h)
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # every 6 hours at minute 0 (UTC)
+  workflow_dispatch:         # optional: run manually from Actions tab
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Basics
+        run: |
+          echo "::group::Host & Runtime"
+          date -u
+          echo "Runner: $(uname -a)"
+          echo "Uptime: $(uptime)"
+          echo "User: $(whoami)"
+          echo "::endgroup::"
+
+      - name: Disk, Memory, CPU
+        shell: bash
+        run: |
+          echo "::group::Disk usage"
+          df -h
+          echo "::endgroup::"
+
+          echo "::group::Disk inodes"
+          df -i
+          echo "::endgroup::"
+
+          echo "::group::Memory"
+          free -h
+          echo "::endgroup::"
+
+          echo "::group::Top processes by CPU"
+          ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head -n 10
+          echo "::endgroup::"
+
+          echo "::group::Top processes by Memory"
+          ps -eo pid,comm,%mem,%cpu --sort=-%mem | head -n 10
+          echo "::endgroup::"
+
+      - name: Network & External Reachability
+        shell: bash
+        run: |
+          echo "::group::DNS & HTTP checks"
+          ping -c 3 8.8.8.8 || echo "::warning::Ping to 8.8.8.8 failed"
+          ping -c 3 github.com || echo "::warning::Ping to github.com failed"
+          curl -Is https://github.com | head -n 1 || echo "::warning
