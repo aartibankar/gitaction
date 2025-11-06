@@ -1,0 +1,31 @@
+name: Daily Build & Test @ 10:30
+
+on:
+  schedule:
+    - cron: "30 10 * * *"   # Runs daily at 10:30 UTC (works even with no new commits)
+  workflow_dispatch:         # Optional: allow manual runs from Actions tab
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest
+
+      # Replace these with your actual build steps if needed
+      - name: Build
+        run: echo "Build step goes here"
+
+      - name: Run tests
+        run: pytest -v
